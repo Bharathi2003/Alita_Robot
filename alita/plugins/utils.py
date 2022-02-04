@@ -128,8 +128,7 @@ async def get_lyrics(_, m: Message):
     em = await m.reply_text(
         (tlang(m, "utils.song.searching").format(song_name=query)),
     )
-    song = Song.find_song(query)
-    if song:
+    if song := Song.find_song(query):
         if song.lyrics:
             reply = song.format()
         else:
@@ -284,10 +283,11 @@ async def my_info(c: Alita, m: Message):
         LOGGER.warning(f"Calling api to fetch info about user {user_id}")
         user = await c.get_users(user_id)
         name = (
-            escape(user["first_name"] + " " + user["last_name"])
+            escape(f'{user["first_name"]} {user["last_name"]}')
             if user["last_name"]
             else user["first_name"]
         )
+
         user_name = user["username"]
         user_id = user["id"]
     except PeerIdInvalid:
@@ -367,14 +367,8 @@ async def paste_it(_, m: Message):
 async def translate(_, m: Message):
     trl = Translator()
     if m.reply_to_message and (m.reply_to_message.text or m.reply_to_message.caption):
-        if len(m.text.split()) == 1:
-            target_lang = "en"
-        else:
-            target_lang = m.text.split()[1]
-        if m.reply_to_message.text:
-            text = m.reply_to_message.text
-        else:
-            text = m.reply_to_message.caption
+        target_lang = "en" if len(m.text.split()) == 1 else m.text.split()[1]
+        text = m.reply_to_message.text or m.reply_to_message.caption
     else:
         if len(m.text.split()) <= 2:
             await m.reply_text(
@@ -387,7 +381,7 @@ async def translate(_, m: Message):
     try:
         tekstr = await trl(text, targetlang=target_lang)
     except ValueError as err:
-        await m.reply_text(f"Error: <code>{str(err)}</code>")
+        await m.reply_text(f'Error: <code>{err}</code>')
         return
     LOGGER.info(f"{m.from_user.id} used translate cmd in {m.chat.id}")
     return await m.reply_text(

@@ -71,7 +71,7 @@ LOGGER.info("------------------------")
 LOGGER.info("|      Alita_Robot     |")
 LOGGER.info("------------------------")
 LOGGER.info(f"Version: {Config.VERSION}")
-LOGGER.info(f"Owner: {str(Config.OWNER_ID)}")
+LOGGER.info(f'Owner: {Config.OWNER_ID}')
 LOGGER.info("Source Code: https://github.com/DivideProjects/Alita_Robot\n")
 
 # Account Related
@@ -115,7 +115,7 @@ async def load_cmds(all_plugins):
             LOGGER.warning(f"Not loading '{single}' s it's added in NO_LOAD list")
             continue
 
-        imported_module = imp_mod("alita.plugins." + single)
+        imported_module = imp_mod(f'alita.plugins.{single}')
         if not hasattr(imported_module, "__PLUGIN__"):
             continue
 

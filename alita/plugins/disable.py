@@ -65,10 +65,7 @@ async def set_dsbl_action(_, m: Message):
     db = Disabling(m.chat.id)
 
     status = db.get_action()
-    if status == "none":
-        cur = False
-    else:
-        cur = True
+    cur = status != "none"
     args = m.text.split(" ", 1)
 
     LOGGER.info(f"{m.from_user.id} disabledel used in {m.chat.id}")

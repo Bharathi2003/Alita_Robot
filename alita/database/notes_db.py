@@ -41,10 +41,9 @@ class Notes(MongoDB):
         fileid="",
     ):
         with INSERTION_LOCK:
-            curr = self.find_one(
+            if curr := self.find_one(
                 {"chat_id": chat_id, "note_name": note_name},
-            )
-            if curr:
+            ):
                 return False
             hash_gen = md5(
                 (note_name + note_value + str(chat_id) + str(int(time()))).encode(),
@@ -62,10 +61,9 @@ class Notes(MongoDB):
 
     def get_note(self, chat_id: int, note_name: str):
         with INSERTION_LOCK:
-            curr = self.find_one(
+            if curr := self.find_one(
                 {"chat_id": chat_id, "note_name": note_name},
-            )
-            if curr:
+            ):
                 return curr
             return "Note does not exist!"
 
@@ -81,10 +79,9 @@ class Notes(MongoDB):
 
     def rm_note(self, chat_id: int, note_name: str):
         with INSERTION_LOCK:
-            curr = self.find_one(
+            if curr := self.find_one(
                 {"chat_id": chat_id, "note_name": note_name},
-            )
-            if curr:
+            ):
                 self.delete_one(curr)
                 return True
             return False
@@ -95,10 +92,7 @@ class Notes(MongoDB):
 
     def count_notes(self, chat_id: int):
         with INSERTION_LOCK:
-            curr = self.find_all({"chat_id": chat_id})
-            if curr:
-                return len(curr)
-            return 0
+            return len(curr) if (curr := self.find_all({"chat_id": chat_id})) else 0
 
     def count_notes_chats(self):
         with INSERTION_LOCK:
@@ -117,8 +111,7 @@ class Notes(MongoDB):
     # Migrate if chat id changes!
     def migrate_chat(self, old_chat_id: int, new_chat_id: int):
         with INSERTION_LOCK:
-            old_chat_db = self.find_one({"_id": old_chat_id})
-            if old_chat_db:
+            if old_chat_db := self.find_one({"_id": old_chat_id}):
                 new_data = old_chat_db.update({"_id": new_chat_id})
                 self.delete_one({"_id": old_chat_id})
                 self.insert_one(new_data)
@@ -131,14 +124,12 @@ class NotesSettings(MongoDB):
         super().__init__(self.db_name)
 
     def set_privatenotes(self, chat_id: int, status: bool = False):
-        curr = self.find_one({"_id": chat_id})
-        if curr:
+        if curr := self.find_one({"_id": chat_id}):
             return self.update({"_id": chat_id}, {"privatenotes": status})
         return self.insert_one({"_id": chat_id, "privatenotes": status})
 
     def get_privatenotes(self, chat_id: int):
-        curr = self.find_one({"_id": chat_id})
-        if curr:
+        if curr := self.find_one({"_id": chat_id}):
             return curr["privatenotes"]
         self.update({"_id": chat_id}, {"privatenotes": False})
         return False
@@ -152,8 +143,7 @@ class NotesSettings(MongoDB):
     # Migrate if chat id changes!
     def migrate_chat(self, old_chat_id: int, new_chat_id: int):
         with INSERTION_LOCK:
-            old_chat_db = self.find_one({"_id": old_chat_id})
-            if old_chat_db:
+            if old_chat_db := self.find_one({"_id": old_chat_id}):
                 new_data = old_chat_db.update({"_id": new_chat_id})
                 self.delete_one({"_id": old_chat_id})
                 self.insert_one(new_data)

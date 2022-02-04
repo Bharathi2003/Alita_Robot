@@ -671,7 +671,7 @@ async def dban_usr(c: Alita, m: Message):
     if not m.reply_to_message:
         return await m.reply_text("Reply to a message to delete it and ban the user!")
 
-    if m.reply_to_message and not m.reply_to_message.from_user:
+    if not m.reply_to_message.from_user:
         user_id, user_first_name = (
             m.reply_to_message.sender_chat.id,
             m.reply_to_message.sender_chat.title,
@@ -708,10 +708,7 @@ async def dban_usr(c: Alita, m: Message):
         await m.reply_text(tlang(m, "admin.ban.admin_cannot_ban"))
         await m.stop_propagation()
 
-    reason = None
-    if len(m.text.split()) >= 2:
-        reason = m.text.split(None, 1)[1]
-
+    reason = m.text.split(None, 1)[1] if len(m.text.split()) >= 2 else None
     try:
         LOGGER.info(f"{m.from_user.id} dbanned {user_id} in {m.chat.id}")
         await m.reply_to_message.delete()
@@ -863,7 +860,7 @@ async def unbanbutton(c: Alita, q: CallbackQuery):
         )
         return
     whoo = await c.get_chat(user_id)
-    doneto = whoo.first_name if whoo.first_name else whoo.title
+    doneto = whoo.first_name or whoo.title
     try:
         await q.message.chat.unban_member(user_id)
     except RPCError as e:
@@ -875,9 +872,7 @@ async def unbanbutton(c: Alita, q: CallbackQuery):
 
 @Alita.on_message(command("kickme"))
 async def kickme(_, m: Message):
-    reason = None
-    if len(m.text.split()) >= 2:
-        reason = m.text.split(None, 1)[1]
+    reason = m.text.split(None, 1)[1] if len(m.text.split()) >= 2 else None
     try:
         LOGGER.info(f"{m.from_user.id} kickme used by {m.from_user.id} in {m.chat.id}")
         await m.chat.ban_member(m.from_user.id)
